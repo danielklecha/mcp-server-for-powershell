@@ -1,0 +1,238 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Projects\GitHub\mcp-server-for-powershell
+configfile: pyproject.toml
+plugins: anyio-4.12.0
+collected 13 items
+
+tests\test_json_commands.py ...FFFFF                                     [ 61%]
+tests\test_restricted_path.py .....                                      [100%]
+
+================================== FAILURES ===================================
+_______________ TestJsonCommands.test_construction_named_params _______________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_______________________ TestJsonCommands.test_pipeline ________________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+___________ TestJsonCommands.test_run_powershell_disable_restricted ___________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_________________ TestJsonCommands.test_run_powershell_simple _________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_______________________ TestJsonCommands.test_sequence ________________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construction_named_params
+FAILED tests/test_json_commands.py::TestJsonCommands::test_pipeline - ModuleN...
+FAILED tests/test_json_commands.py::TestJsonCommands::test_run_powershell_disable_restricted
+FAILED tests/test_json_commands.py::TestJsonCommands::test_run_powershell_simple
+FAILED tests/test_json_commands.py::TestJsonCommands::test_sequence - ModuleN...
+========================= 5 failed, 8 passed in 1.32s =========================

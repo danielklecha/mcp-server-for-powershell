@@ -1,0 +1,121 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Projects\GitHub\mcp-server-for-powershell
+configfile: pyproject.toml
+plugins: anyio-4.12.0
+collected 13 items
+
+tests\test_json_commands.py ...FF.FF                                     [ 61%]
+tests\test_restricted_path.py .....                                      [100%]
+
+================================== FAILURES ===================================
+_______________ TestJsonCommands.test_construction_named_params _______________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_construction_named_params>
+mock_popen = <MagicMock name='Popen' id='2013919178304'>
+
+    @patch('mcp_server_for_powershell.server.subprocess.Popen')
+    def test_construction_named_params(self, mock_popen):
+        process_mock = MagicMock()
+        process_mock.communicate.return_value = ("", "")
+        process_mock.returncode = 0
+        mock_popen.return_value = process_mock
+    
+        # {command: "", parameters: { "-Headers": "x" }}
+        json_input = json.dumps([{
+            "command": "Get-Item",
+            "parameters": {"-Path": ".", "-Force": True}
+        }])
+    
+        run_powershell(json=json_input)
+    
+        args, _ = mock_popen.call_args
+>       encoded = args[0][args[0].index("-EncodedCommand") + 1]
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: '-EncodedCommand' is not in list
+
+tests\test_json_commands.py:107: ValueError
+_______________________ TestJsonCommands.test_pipeline ________________________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_pipeline>
+mock_popen = <MagicMock name='Popen' id='2013919532560'>
+
+    @patch('mcp_server_for_powershell.server.subprocess.Popen')
+    def test_pipeline(self, mock_popen):
+        process_mock = MagicMock()
+        process_mock.communicate.return_value = ("", "")
+        process_mock.returncode = 0
+        mock_popen.return_value = process_mock
+    
+        # {command: "A", then: {command: "B"}}
+        json_input = json.dumps([{
+            "command": "Get-Process",
+            "then": {"command": "Select-Object", "parameters": ["Name"]}
+        }])
+    
+        run_powershell(json=json_input)
+    
+        args, _ = mock_popen.call_args
+>       encoded = args[0][args[0].index("-EncodedCommand") + 1]
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: '-EncodedCommand' is not in list
+
+tests\test_json_commands.py:130: ValueError
+_________________ TestJsonCommands.test_run_powershell_simple _________________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_run_powershell_simple>
+mock_popen = <MagicMock name='Popen' id='2013920053536'>
+
+    @patch('mcp_server_for_powershell.server.subprocess.Popen')
+    def test_run_powershell_simple(self, mock_popen):
+        # Mock process output
+        process_mock = MagicMock()
+        process_mock.communicate.return_value = ("Success", "")
+        process_mock.returncode = 0
+        mock_popen.return_value = process_mock
+    
+        json_input = json.dumps([{"command": "Get-Date"}])
+        result = run_powershell(json=json_input)
+    
+        self.assertEqual(result, "Success")
+    
+        # Verify the command passed to pwsh
+        args, kwargs = mock_popen.call_args
+        cmd_list = args[0]
+        self.assertIn("pwsh", cmd_list)
+>       self.assertIn("-EncodedCommand", cmd_list)
+E       AssertionError: '-EncodedCommand' not found in ['pwsh', '-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Restricted', '-InputFormat', 'Text', '-OutputFormat', 'Text', '-Command', 'if ($null -ne $PSStyle) { $PSStyle.OutputRendering = \\"PlainText\\" }; $ExecutionContext.SessionState.LanguageMode = \\"RestrictedLanguage\\"; Get-Date']
+
+tests\test_json_commands.py:57: AssertionError
+_______________________ TestJsonCommands.test_sequence ________________________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_sequence>
+mock_popen = <MagicMock name='Popen' id='2013920060160'>
+
+    @patch('mcp_server_for_powershell.server.subprocess.Popen')
+    def test_sequence(self, mock_popen):
+        process_mock = MagicMock()
+        process_mock.communicate.return_value = ("", "")
+        process_mock.returncode = 0
+        mock_popen.return_value = process_mock
+    
+        # [{cmd: A}, {cmd: B}]
+        json_input = json.dumps([
+            {"command": "Get-Date", "parameters": []},
+            {"command": "Get-Location", "parameters": []}
+        ])
+    
+        run_powershell(json=json_input)
+    
+        args, _ = mock_popen.call_args
+>       encoded = args[0][args[0].index("-EncodedCommand") + 1]
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: '-EncodedCommand' is not in list
+
+tests\test_json_commands.py:151: ValueError
+=========================== short test summary info ===========================
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construction_named_params
+FAILED tests/test_json_commands.py::TestJsonCommands::test_pipeline - ValueEr...
+FAILED tests/test_json_commands.py::TestJsonCommands::test_run_powershell_simple
+FAILED tests/test_json_commands.py::TestJsonCommands::test_sequence - ValueEr...
+========================= 4 failed, 9 passed in 0.92s =========================

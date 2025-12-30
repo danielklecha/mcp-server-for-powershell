@@ -1,0 +1,358 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Projects\GitHub\mcp-server-for-powershell
+configfile: pyproject.toml
+plugins: anyio-4.12.0
+collected 18 items
+
+tests\test_json_commands.py FFFFFFFF                                     [ 44%]
+tests\test_restricted_path.py F.FFF                                      [ 72%]
+tests\test_server_security.py FFF..                                      [100%]
+
+================================== FAILURES ===================================
+________________ TestJsonCommands.test_construct_dotnet_method ________________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_construct_dotnet_method>
+
+    def test_construct_dotnet_method(self):
+        input_data = [{"command": "[System.Math]::Sqrt", "parameters": [16]}]
+>       result = _construct_script(input_data)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _construct_script() missing 1 required positional argument: 'cwd_path'
+
+tests\test_json_commands.py:28: TypeError
+_________ TestJsonCommands.test_construct_dotnet_method_multiple_args _________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_construct_dotnet_method_multiple_args>
+
+    def test_construct_dotnet_method_multiple_args(self):
+        # Hypothetical method with multiple args
+        input_data = [{"command": "[Some.Class]::Method", "parameters": [1, "two", True]}]
+>       result = _construct_script(input_data)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _construct_script() missing 1 required positional argument: 'cwd_path'
+
+tests\test_json_commands.py:35: TypeError
+_______________ TestJsonCommands.test_construct_single_command ________________
+
+self = <test_json_commands.TestJsonCommands testMethod=test_construct_single_command>
+
+    def test_construct_single_command(self):
+        input_data = [{"command": "Get-Item", "parameters": ["."]}]
+>       result = _construct_script(input_data)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _construct_script() missing 1 required positional argument: 'cwd_path'
+
+tests\test_json_commands.py:22: TypeError
+_______________ TestJsonCommands.test_construction_named_params _______________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_______________________ TestJsonCommands.test_pipeline ________________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+___________ TestJsonCommands.test_run_powershell_disable_restricted ___________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_________________ TestJsonCommands.test_run_powershell_simple _________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+_______________________ TestJsonCommands.test_sequence ________________________
+C:\Python312\Lib\unittest\mock.py:1393: in patched
+    with self.decoration_helper(patched,
+C:\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1375: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python312\Lib\contextlib.py:526: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python312\Lib\unittest\mock.py:1451: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python312\Lib\pkgutil.py:513: in resolve_name
+    mod = importlib.import_module(modname)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'server', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+>       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'server'
+
+C:\Python312\Lib\importlib\__init__.py:90: ModuleNotFoundError
+________________ TestRestrictedPath.test_allowed_absolute_path ________________
+
+self = <test_restricted_path.TestRestrictedPath testMethod=test_allowed_absolute_path>
+
+    def test_allowed_absolute_path(self):
+>       self.assertFalse(_is_restricted_path(r"C:\Allowed\file.txt"))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _is_restricted_path() missing 1 required positional argument: 'cwd_path'
+
+tests\test_restricted_path.py:39: TypeError
+___________________ TestRestrictedPath.test_pathlib_object ____________________
+
+self = <test_restricted_path.TestRestrictedPath testMethod=test_pathlib_object>
+
+    def test_pathlib_object(self):
+>       self.assertTrue(_is_restricted_path(pathlib.Path(r"C:\Restricted\file.txt")))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _is_restricted_path() missing 1 required positional argument: 'cwd_path'
+
+tests\test_restricted_path.py:49: TypeError
+________________ TestRestrictedPath.test_relative_path_skipped ________________
+
+self = <test_restricted_path.TestRestrictedPath testMethod=test_relative_path_skipped>
+
+    def test_relative_path_skipped(self):
+        # Relative paths should return False (not restricted check skipped -> not restricted?)
+        # Logic says: if not absolute return False.
+>       self.assertFalse(_is_restricted_path("file.txt"))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _is_restricted_path() missing 1 required positional argument: 'cwd_path'
+
+tests\test_restricted_path.py:45: TypeError
+______________ TestRestrictedPath.test_restricted_absolute_path _______________
+
+self = <test_restricted_path.TestRestrictedPath testMethod=test_restricted_absolute_path>
+
+    def test_restricted_absolute_path(self):
+>       self.assertTrue(_is_restricted_path(r"C:\Restricted\secret.txt"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _is_restricted_path() missing 1 required positional argument: 'cwd_path'
+
+tests\test_restricted_path.py:34: TypeError
+______ TestPowerShellSecurity.test_language_mode_bypass_case_insensitive ______
+
+self = <test_server_security.TestPowerShellSecurity testMethod=test_language_mode_bypass_case_insensitive>
+
+    def test_language_mode_bypass_case_insensitive(self):
+        code = "$ExecutionContext.SessionState.LANGUAGEMODE = 'FullLanguage'"
+        result = run_powershell(code)
+>       self.assertIn("Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed", result)
+E       AssertionError: 'Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed' not found in 'Error parsing JSON input: Expecting value: line 1 column 1 (char 0)'
+
+tests\test_server_security.py:27: AssertionError
+__________ TestPowerShellSecurity.test_language_mode_bypass_combined __________
+
+self = <test_server_security.TestPowerShellSecurity testMethod=test_language_mode_bypass_combined>
+
+    def test_language_mode_bypass_combined(self):
+        code = "$ExecutionContext  .  SessionState.lAnGuAgEmOdE = 'FullLanguage'"
+        result = run_powershell(code)
+>       self.assertIn("Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed", result)
+E       AssertionError: 'Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed' not found in 'Error parsing JSON input: Expecting value: line 1 column 1 (char 0)'
+
+tests\test_server_security.py:37: AssertionError
+_________ TestPowerShellSecurity.test_language_mode_bypass_whitespace _________
+
+self = <test_server_security.TestPowerShellSecurity testMethod=test_language_mode_bypass_whitespace>
+
+    def test_language_mode_bypass_whitespace(self):
+        code = "$ExecutionContext . SessionState . LanguageMode = 'FullLanguage'"
+        result = run_powershell(code)
+>       self.assertIn("Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed", result)
+E       AssertionError: 'Error: manipulation of $ExecutionContext.SessionState.LanguageMode is not allowed' not found in 'Error parsing JSON input: Expecting value: line 1 column 1 (char 0)'
+
+tests\test_server_security.py:32: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construct_dotnet_method
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construct_dotnet_method_multiple_args
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construct_single_command
+FAILED tests/test_json_commands.py::TestJsonCommands::test_construction_named_params
+FAILED tests/test_json_commands.py::TestJsonCommands::test_pipeline - ModuleN...
+FAILED tests/test_json_commands.py::TestJsonCommands::test_run_powershell_disable_restricted
+FAILED tests/test_json_commands.py::TestJsonCommands::test_run_powershell_simple
+FAILED tests/test_json_commands.py::TestJsonCommands::test_sequence - ModuleN...
+FAILED tests/test_restricted_path.py::TestRestrictedPath::test_allowed_absolute_path
+FAILED tests/test_restricted_path.py::TestRestrictedPath::test_pathlib_object
+FAILED tests/test_restricted_path.py::TestRestrictedPath::test_relative_path_skipped
+FAILED tests/test_restricted_path.py::TestRestrictedPath::test_restricted_absolute_path
+FAILED tests/test_server_security.py::TestPowerShellSecurity::test_language_mode_bypass_case_insensitive
+FAILED tests/test_server_security.py::TestPowerShellSecurity::test_language_mode_bypass_combined
+FAILED tests/test_server_security.py::TestPowerShellSecurity::test_language_mode_bypass_whitespace
+======================== 15 failed, 3 passed in 3.51s =========================
