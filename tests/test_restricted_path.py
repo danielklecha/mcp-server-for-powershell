@@ -21,38 +21,60 @@ from mcp_server_for_powershell.server import _is_restricted_path
 
 class TestRestrictedPath(unittest.TestCase):
     def setUp(self):
-        # Setup restricted directories for testing if they are global
-        # server.RESTRICTED_DIRECTORIES is used.
-        # We should back it up and restore it.
+        # Setup restricted directories for testing based on OS
         self.original_dirs = server.RESTRICTED_DIRECTORIES
-        server.RESTRICTED_DIRECTORIES = [r"C:\Restricted", r"C:\Windows"]
+        
+        if os.name == 'nt':
+            self.restricted_root = r"C:\Restricted"
+            self.windows_system = r"C:\Windows"
+            self.allowed_root = r"C:\Allowed"
+            self.public_docs = r"C:\Users\Public\Documents"
+            server.RESTRICTED_DIRECTORIES = [self.restricted_root, self.windows_system]
+        else:
+            # POSIX paths for Linux execution (GitHub Actions)
+            self.restricted_root = "/tmp/Restricted"
+            self.windows_system = "/etc" # acting as a system dir
+            self.allowed_root = "/tmp/Allowed"
+            self.public_docs = "/home/user/public"
+            server.RESTRICTED_DIRECTORIES = [self.restricted_root, self.windows_system]
 
     def tearDown(self):
         server.RESTRICTED_DIRECTORIES = self.original_dirs
 
     def test_restricted_absolute_path(self):
-        self.assertTrue(_is_restricted_path(r"C:\Restricted\secret.txt", pathlib.Path(".")))
-        self.assertTrue(_is_restricted_path(r"C:\Windows\System32\drivers", pathlib.Path(".")))
-        self.assertTrue(_is_restricted_path(r"C:\Restricted", pathlib.Path(".")))
+        # Construct paths using the roots defined in setUp
+        secret_txt = os.path.join(self.restricted_root, "secret.txt")
+        system_file = os.path.join(self.windows_system, "System32", "drivers")
+        
+        self.assertTrue(_is_restricted_path(secret_txt, pathlib.Path(".")))
+        self.assertTrue(_is_restricted_path(system_file, pathlib.Path(".")))
+        self.assertTrue(_is_restricted_path(self.restricted_root, pathlib.Path(".")))
 
     def test_allowed_absolute_path(self):
-        self.assertFalse(_is_restricted_path(r"C:\Allowed\file.txt", pathlib.Path(".")))
-        self.assertFalse(_is_restricted_path(r"C:\Users\Public\Documents", pathlib.Path(".")))
+        allowed_file = os.path.join(self.allowed_root, "file.txt")
+        
+        self.assertFalse(_is_restricted_path(allowed_file, pathlib.Path(".")))
+        self.assertFalse(_is_restricted_path(self.public_docs, pathlib.Path(".")))
 
     def test_relative_path_skipped(self):
-        # Relative paths should return False (not restricted check skipped -> not restricted?)
-        # Logic says: if not absolute return False.
+        # Relative paths should return False (checks against restricted dirs are for absolute paths)
         self.assertFalse(_is_restricted_path("file.txt", pathlib.Path(".")))
-        self.assertFalse(_is_restricted_path(r"subdir\file.txt", pathlib.Path(".")))
+        self.assertFalse(_is_restricted_path(os.path.join("subdir", "file.txt"), pathlib.Path(".")))
 
     def test_pathlib_object(self):
-        self.assertTrue(_is_restricted_path(pathlib.Path(r"C:\Restricted\file.txt"), pathlib.Path(".")))
-        self.assertFalse(_is_restricted_path(pathlib.Path(r"C:\Allowed\file.txt"), pathlib.Path(".")))
+        restricted_file = pathlib.Path(self.restricted_root) / "file.txt"
+        allowed_file = pathlib.Path(self.allowed_root) / "file.txt"
+        
+        self.assertTrue(_is_restricted_path(restricted_file, pathlib.Path(".")))
+        self.assertFalse(_is_restricted_path(allowed_file, pathlib.Path(".")))
 
     def test_case_insensitivity_if_windows(self):
-        # pathlib resolution handles case on Windows usually.
-        # But we constructed paths.
-        pass
+        if os.name == 'nt':
+            # Check mixed case on Windows
+            mixed_case = self.restricted_root.lower()
+            self.assertTrue(_is_restricted_path(mixed_case, pathlib.Path(".")))
+        else:
+            pass
 
 if __name__ == '__main__':
     unittest.main()
