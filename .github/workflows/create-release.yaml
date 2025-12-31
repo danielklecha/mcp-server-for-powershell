@@ -34,6 +34,9 @@ jobs:
           echo "Updating version to $VERSION"
           hatch version "$VERSION"
 
+      - name: Run Tests
+        run: hatch run test tests/unit
+
       - name: Build
         run: hatch build
 

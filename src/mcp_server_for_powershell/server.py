@@ -64,12 +64,23 @@ REQUIRED_RESTRICTED_COMMANDS = [
 
 DEFAULT_RESTRICTED_COMMANDS = REQUIRED_RESTRICTED_COMMANDS + OPTIONAL_RESTRICTED_COMMANDS
 
-DEFAULT_RESTRICTED_DIRECTORIES = [
-    r"C:\Windows",
-    r"C:\Program Files",
-    r"C:\Program Files (x86)",
-    r"C:\ProgramData",
-]
+def _get_default_restricted_directories() -> list[str]:
+    """Returns a list of default restricted directories based on the operating system."""
+    if os.name == 'nt':
+        return [
+            r"C:\Windows",
+            r"C:\Program Files",
+            r"C:\Program Files (x86)",
+            r"C:\ProgramData",
+        ]
+    else:
+        # Linux / POSIX defaults
+        return [
+            "/etc",
+            "/root",
+        ]
+
+DEFAULT_RESTRICTED_DIRECTORIES = _get_default_restricted_directories()
 
 # Initialize the MCP server
 mcp = FastMCP("powershell-integration")

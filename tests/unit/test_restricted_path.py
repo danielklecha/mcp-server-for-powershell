@@ -5,12 +5,21 @@ import os
 import pathlib
 
 # Adjust path to import server
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/powershell_mcp')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
 # Mocking FastMCP to avoid instantiation issues or side effects during import if it runs things
 from unittest.mock import MagicMock
-sys.modules['mcp.server.fastmcp'] = MagicMock()
-sys.modules['mcp.server.fastmcp.FastMCP'] = MagicMock()
+mock_mcp_instance = MagicMock()
+def tool_decorator():
+    def decorator(func):
+        return func
+    return decorator
+mock_mcp_instance.tool.side_effect = tool_decorator
+
+mock_fastmcp_cls = MagicMock(return_value=mock_mcp_instance)
+mock_module = MagicMock()
+mock_module.FastMCP = mock_fastmcp_cls
+sys.modules['mcp.server.fastmcp'] = mock_module
 
 # Now import the function to test
 # We need to import the module to access the private function if strictly needed, 
@@ -78,3 +87,4 @@ class TestRestrictedPath(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

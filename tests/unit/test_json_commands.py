@@ -7,7 +7,21 @@ import os
 import pathlib
 
 # Adjust path to import server
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/powershell_mcp')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
+# Mocking FastMCP to avoid instantiation issues and handle decorator
+from unittest.mock import MagicMock
+mock_mcp_instance = MagicMock()
+def tool_decorator():
+    def decorator(func):
+        return func
+    return decorator
+mock_mcp_instance.tool.side_effect = tool_decorator
+
+mock_fastmcp_cls = MagicMock(return_value=mock_mcp_instance)
+mock_module = MagicMock()
+mock_module.FastMCP = mock_fastmcp_cls
+sys.modules['mcp.server.fastmcp'] = mock_module
 
 from mcp_server_for_powershell.server import run_powershell, _construct_script
 import mcp_server_for_powershell.server as server_module
@@ -51,6 +65,9 @@ class TestJsonCommands(unittest.TestCase):
         self.assertEqual(result, "Success")
         
         # Verify the command passed to pwsh
+        if not mock_popen.called:
+             print("DEBUG: Unexpectedly not called.")
+        
         args, kwargs = mock_popen.call_args
         cmd_list = args[0]
         self.assertIn("pwsh", cmd_list)

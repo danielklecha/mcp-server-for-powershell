@@ -27,11 +27,9 @@ When reporting vulnerabilities, please distinguish between **intended functional
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability that falls within the scope above, please **do not open a public GitHub issue**.
+Please report sensitive information via [GitHub Private Vulnerability Reporting](https://github.com/danielklecha/webdav-server-for-filehold/security/advisories/new).
 
-1.  **Email:** Send a detailed report to [INSERT YOUR EMAIL HERE].
-2.  **Encryption:** If possible, encrypt your message using our PGP key: [LINK TO KEY OR FINGERPRINT] (Optional).
-3.  **Timeline:** We will acknowledge your report within 48 hours and provide an estimated timeline for a fix.
+Please do not report security vulnerabilities through public GitHub issues.
 
 ## Best Practices for Users
 
