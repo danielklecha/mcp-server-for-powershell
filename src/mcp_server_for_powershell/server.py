@@ -62,7 +62,52 @@ REQUIRED_RESTRICTED_COMMANDS = [
     "pwsh", "powershell", "cmd", "cmd.exe", "wscript", "cscript"
 ]
 
-DEFAULT_RESTRICTED_COMMANDS = REQUIRED_RESTRICTED_COMMANDS + OPTIONAL_RESTRICTED_COMMANDS
+DEFAULT_RESTRICTED_COMMANDS = [
+    # Execution/Process
+    "Invoke-Expression", "iex",
+    "Start-Process", "start", "spps",
+    "Stop-Process", "kill", "spp",
+    "Restart-Computer",
+    "Stop-Computer",
+    ".", # Dot-sourcing
+    "Add-Type", # Compilation
+    "Invoke-ASCmd", # Analysis Services
+
+    # Sessions
+    "Enter-PSSession",
+    "New-PSSession",
+
+    # Objects
+    "New-Object",
+
+    # Navigation
+    "Set-Location", "cd", "chdir", "sl",
+    "Push-Location", "pushd",
+    "Pop-Location", "popd",
+
+    # Dangerous / System
+    "&", "call", # Call operator
+    "Out-File", "tee", "Tee-Object",
+    "Set-Item", "si",
+    "Clear-Item", "cli",
+    "Invoke-Item", "ii",
+    "New-Alias", "nal", "Set-Alias", "sal",
+    "Invoke-Command", "icm",
+    
+    # Process/Shell escapism
+    "pwsh", "powershell", "cmd", "cmd.exe", "wscript", "cscript",
+
+    # File System
+    "Remove-Item", "rm", "rd", "erase", "del", "ri",
+    "New-Item", "ni", "md", "mkdir",
+    "Set-Content", "sc", 
+    "Add-Content", "ac",
+    "Clear-Content", "clc",
+    "Copy-Item", "cp", "copy", "cpi",
+    "Move-Item", "mv", "move", "mi",
+    "Rename-Item", "ren", "rni",
+]
+
 
 def _get_default_restricted_directories() -> list[str]:
     """Returns a list of default restricted directories based on the operating system."""
@@ -91,7 +136,7 @@ def _is_restricted_path(path_input: str | pathlib.Path, cwd_path: pathlib.Path) 
     Resolves relative paths against the provided cwd_path.
     Returns True if restricted, False otherwise.
     """
-    dirs_to_check = list(RESTRICTED_DIRECTORIES if RESTRICTED_DIRECTORIES else DEFAULT_RESTRICTED_DIRECTORIES)
+    dirs_to_check = list(RESTRICTED_DIRECTORIES if RESTRICTED_DIRECTORIES is not None else DEFAULT_RESTRICTED_DIRECTORIES)
     
     # 1. Resolve the target path
     path_obj = None
@@ -176,7 +221,7 @@ def _validate_command(cmd_name: str) -> None:
     if re.search(r'\s', cmd_name):
         raise ValueError(f"Command name '{cmd_name}' contains whitespace (space, tab, etc.), which is not allowed.")
         
-    cmds_to_check = RESTRICTED_COMMANDS if RESTRICTED_COMMANDS else DEFAULT_RESTRICTED_COMMANDS
+    cmds_to_check = RESTRICTED_COMMANDS if RESTRICTED_COMMANDS is not None else DEFAULT_RESTRICTED_COMMANDS
     
     if cmd_name.lower() in [rc.lower() for rc in cmds_to_check]:
         raise ValueError(f"Command '{cmd_name}' is restricted and cannot be executed.")
@@ -459,9 +504,9 @@ def main():
         # print(f"Server starting with allowed commands: {ALLOWED_COMMANDS}", file=sys.stderr)
 
     if args.restricted_commands is not None:
-        # If user explicitly provided restricted commands, we respect that list BUT forcedly include REQUIRED ones.
-        # This implies user can only opt-out of OPTIONAL restrictions (filesystem), not REQUIRED ones.
-        RESTRICTED_COMMANDS = list(set(REQUIRED_RESTRICTED_COMMANDS + args.restricted_commands))
+        # If user explicitly provided restricted commands, we respect that list exactly.
+        # This implies user has full control to add or remove restrictions.
+        RESTRICTED_COMMANDS = args.restricted_commands
     else:
         # Default behavior: All default restrictions apply
         RESTRICTED_COMMANDS = DEFAULT_RESTRICTED_COMMANDS
