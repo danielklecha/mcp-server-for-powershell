@@ -12,55 +12,9 @@ import pathlib
 # Global configuration
 ALLOWED_COMMANDS = []
 RESTRICTED_COMMANDS = []
-RESTRICTED_DIRECTORIES = []
-RESTRICTED_DIRECTORIES = []
+RESTRICTED_DIRECTORIES = None
 LANGUAGE_MODE = 1
 SERVER_CWD = None
-
-OPTIONAL_RESTRICTED_COMMANDS = [
-    # File System
-    "Remove-Item", "rm", "rd", "erase", "del", "ri",
-    "New-Item", "ni", "md", "mkdir",
-    "Set-Content", "sc", 
-    "Add-Content", "ac",
-    "Clear-Content", "clc",
-    "Copy-Item", "cp", "copy", "cpi",
-    "Move-Item", "mv", "move", "mi",
-    "Rename-Item", "ren", "rni",
-]
-
-REQUIRED_RESTRICTED_COMMANDS = [
-    # Execution/Process
-    "Invoke-Expression", "iex",
-    "Start-Process", "start", "spps",
-    "Stop-Process", "kill", "spp",
-    "Restart-Computer",
-    "Stop-Computer",
-
-    # Sessions
-    "Enter-PSSession",
-    "New-PSSession",
-
-    # Objects
-    "New-Object",
-
-    # Navigation
-    "Set-Location", "cd", "chdir", "sl",
-    "Push-Location", "pushd",
-    "Pop-Location", "popd",
-
-    # Dangerous / System
-    "&", "call", # Call operator
-    "Out-File", "tee", "Tee-Object",
-    "Set-Item", "si",
-    "Clear-Item", "cli",
-    "Invoke-Item", "ii",
-    "New-Alias", "nal", "Set-Alias", "sal",
-    "Invoke-Command", "icm",
-    
-    # Process/Shell escapism
-    "pwsh", "powershell", "cmd", "cmd.exe", "wscript", "cscript"
-]
 
 DEFAULT_RESTRICTED_COMMANDS = [
     # Execution/Process
@@ -72,6 +26,13 @@ DEFAULT_RESTRICTED_COMMANDS = [
     ".", # Dot-sourcing
     "Add-Type", # Compilation
     "Invoke-ASCmd", # Analysis Services
+
+    # System / Management
+    "Set-ExecutionPolicy",
+    "Clear-EventLog",
+    "Limit-EventLog",
+    "Remove-EventLog",
+    "New-EventLog",
 
     # Sessions
     "Enter-PSSession",
@@ -97,7 +58,12 @@ DEFAULT_RESTRICTED_COMMANDS = [
     # Process/Shell escapism
     "pwsh", "powershell", "cmd", "cmd.exe", "wscript", "cscript",
 
-    # File System
+    # Privacy / Secrets
+    "Get-Clipboard", "gcb",
+    "Set-Clipboard", "scb",
+    "Get-Variable", "gv",
+
+    # File System (Modifications usually restricted by default)
     "Remove-Item", "rm", "rd", "erase", "del", "ri",
     "New-Item", "ni", "md", "mkdir",
     "Set-Content", "sc", 
@@ -111,8 +77,19 @@ DEFAULT_RESTRICTED_COMMANDS = [
 
 def _get_default_restricted_directories() -> list[str]:
     """Returns a list of default restricted directories based on the operating system."""
+    # Cross-platform PowerShell Drives
+    common_defaults = [
+        "Env:", "Variable:", "Alias:", "Function:"
+    ]
+
     if os.name == 'nt':
-        return [
+        return common_defaults + [
+            # Windows-specific Drives
+            "HKLM:",
+            "HKCU:",
+            "Cert:",
+            "WSMan:",
+            # System Directories
             r"C:\Windows",
             r"C:\Program Files",
             r"C:\Program Files (x86)",
@@ -120,7 +97,7 @@ def _get_default_restricted_directories() -> list[str]:
         ]
     else:
         # Linux / POSIX defaults
-        return [
+        return common_defaults + [
             "/etc",
             "/root",
         ]
@@ -138,6 +115,19 @@ def _is_restricted_path(path_input: str | pathlib.Path, cwd_path: pathlib.Path) 
     """
     dirs_to_check = list(RESTRICTED_DIRECTORIES if RESTRICTED_DIRECTORIES is not None else DEFAULT_RESTRICTED_DIRECTORIES)
     
+    # 0. Pre-check for special drive syntax (e.g. HKLM:, Env:)
+    # We check if the input string starts with any of the restricted paths that look like drives.
+    # This prevents bypassing normalization, as pathlib might not handle 'Env:' correctly on all OSes or might not see it as absolute.
+    str_input = str(path_input)
+    # Normalize slashes for comparison just in case, though drives usually don't have them at start
+    str_input_norm = str_input.replace("/", "\\")
+    
+    for d in dirs_to_check:
+        if d.endswith(":"): # It's a drive-like restriction
+             # Check if input starts with this drive (case-insensitive)
+             if str_input_norm.lower().startswith(d.lower()):
+                 return True
+
     # 1. Resolve the target path
     path_obj = None
     try:
@@ -163,6 +153,10 @@ def _is_restricted_path(path_input: str | pathlib.Path, cwd_path: pathlib.Path) 
     if path_obj:
         # Check against restricted directories
         for d in dirs_to_check:
+            # Skip drive-only checks here as they were likely handled or won't resolve effectively via abspath if they are virtual
+            if d.endswith(":"):
+                continue
+
             r_path = pathlib.Path(d)
             try:
                 # We need to ensure r_path is absolute for comparison

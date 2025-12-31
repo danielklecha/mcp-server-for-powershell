@@ -36,20 +36,22 @@ class TestRestrictedCommands(unittest.TestCase):
         server.RESTRICTED_COMMANDS = self.original_restricted
         server.DEFAULT_RESTRICTED_COMMANDS = self.original_defaults
 
-    def test_default_restrictions_contain_merged_lists(self):
-        # Check for items from original REQUIRED list
+    def test_default_restrictions_contain_key_commands(self):
+        # Check for items that should be restricted
         self.assertIn("Invoke-Expression", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertIn("Start-Process", server.DEFAULT_RESTRICTED_COMMANDS)
-        
-        # Check for items from original OPTIONAL list
         self.assertIn("Remove-Item", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertIn("Set-Content", server.DEFAULT_RESTRICTED_COMMANDS)
 
     def test_new_security_restrictions(self):
         # Verify new mandatory restrictions are present
-        self.assertIn(".", server.DEFAULT_RESTRICTED_COMMANDS)
-        self.assertIn("Add-Type", server.DEFAULT_RESTRICTED_COMMANDS)
-        self.assertIn("Invoke-ASCmd", server.DEFAULT_RESTRICTED_COMMANDS)
+        self.assertIn("Get-Clipboard", server.DEFAULT_RESTRICTED_COMMANDS)
+        self.assertIn("Set-ExecutionPolicy", server.DEFAULT_RESTRICTED_COMMANDS)
+        self.assertIn("Get-Variable", server.DEFAULT_RESTRICTED_COMMANDS)
+        
+        # Verify network requests are still ALLOWED (NOT in restricted list)
+        self.assertNotIn("Invoke-WebRequest", server.DEFAULT_RESTRICTED_COMMANDS)
+        self.assertNotIn("iwr", server.DEFAULT_RESTRICTED_COMMANDS)
 
     def test_validate_command_blocks_restricted(self):
         # Test default blocking
