@@ -11,7 +11,7 @@ import pathlib
 
 # Global configuration
 ALLOWED_COMMANDS = []
-RESTRICTED_COMMANDS = []
+RESTRICTED_COMMANDS = None
 RESTRICTED_DIRECTORIES = None
 LANGUAGE_MODE = 1
 SERVER_CWD = None
@@ -33,6 +33,7 @@ DEFAULT_RESTRICTED_COMMANDS = [
     "Limit-EventLog",
     "Remove-EventLog",
     "New-EventLog",
+    "Write-EventLog",
 
     # Sessions
     "Enter-PSSession",
@@ -72,6 +73,44 @@ DEFAULT_RESTRICTED_COMMANDS = [
     "Copy-Item", "cp", "copy", "cpi",
     "Move-Item", "mv", "move", "mi",
     "Rename-Item", "ren", "rni",
+
+    # Service Management
+    "Start-Service", "sasv",
+    "Stop-Service", "spsv",
+    "Restart-Service", 
+    "Suspend-Service", "ssv",
+    "Resume-Service",
+    "Set-Service",
+    "New-Service",
+    "Remove-Service",
+
+    # Module Management
+    "Install-Module",
+    "Uninstall-Module",
+    "Update-Module",
+    "Save-Module",
+    "Publish-Module",
+
+    # System Configuration
+    "Add-Computer",
+    "Remove-Computer",
+    "Rename-Computer",
+    "Join-Domain",
+
+    # Remoting / WSMan
+    "Enable-PSRemoting",
+    "Disable-PSRemoting",
+    "Enable-WSManCredSSP",
+    "Disable-WSManCredSSP",
+
+    # Job Management
+    "Start-Job", "sajb",
+    "Stop-Job", "spjb",
+    "Remove-Job", "rjb",
+    
+    # Debugging
+    "Debug-Process",
+    "Debug-Job",
 ]
 
 
