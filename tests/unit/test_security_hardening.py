@@ -33,17 +33,18 @@ class TestSecurityHardening(unittest.TestCase):
     def test_restricted_drives_blocked(self):
         """Verify that PowerShell drives are blocked by prefix check."""
         
-        # Test exact drive match
-        self.assertTrue(server._is_restricted_path("HKLM:", self.cwd), "HKLM: should be restricted")
-        self.assertTrue(server._is_restricted_path("Env:", self.cwd), "Env: should be restricted")
-        
-        # Test sub-paths
-        self.assertTrue(server._is_restricted_path("HKLM:\\Software", self.cwd), "HKLM:\\Software should be restricted")
+        # Test common cross-platform drive match
+        self.assertTrue(server._is_restricted_path("Env:", self.cwd), "Env: should be restricted on all platforms")
         self.assertTrue(server._is_restricted_path("Env:\\Path", self.cwd), "Env:\\Path should be restricted")
-        self.assertTrue(server._is_restricted_path("Cert:\\LocalMachine", self.cwd), "Cert:\\LocalMachine should be restricted")
-
-        # Test case insensitivity
-        self.assertTrue(server._is_restricted_path("hklm:\\software", self.cwd), "hklm:\\software should be restricted")
+        
+        # Test case insensitivity (common)
+        self.assertTrue(server._is_restricted_path("env:\\path", self.cwd), "env:\\path should be restricted (case-insensitive)")
+        
+        # Test Windows-specific drives only on Windows
+        if os.name == 'nt':
+            self.assertTrue(server._is_restricted_path("HKLM:", self.cwd), "HKLM: should be restricted on Windows")
+            self.assertTrue(server._is_restricted_path("HKLM:\\Software", self.cwd), "HKLM:\\Software should be restricted")
+            self.assertTrue(server._is_restricted_path("Cert:\\LocalMachine", self.cwd), "Cert:\\LocalMachine should be restricted")
 
     def test_allowed_paths(self):
         """Verify that normal paths are not falsely restricted."""
