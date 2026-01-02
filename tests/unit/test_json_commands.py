@@ -128,6 +128,22 @@ class TestJsonCommands(unittest.TestCase):
         self.assertIn("-Path '.'", decoded)
         self.assertIn("-Force $true", decoded)
 
+    def test_parameter_name_auto_dash_added(self):
+        # Parameter key missing leading dash should be auto-fixed by prepending '-'
+        input_data = [{"command": "Get-Item", "parameters": {"Path": "."}}]
+        result = _construct_script(input_data, pathlib.Path("."))
+        self.assertIn("-Path '.'", result)
+
+    def test_parameter_name_preserved_if_already_dash(self):
+        input_data = [{"command": "Get-Item", "parameters": {"-Path": "."}}]
+        result = _construct_script(input_data, pathlib.Path("."))
+        self.assertIn("-Path '.'", result)
+
+    def test_valid_parameter_name_allowed(self):
+        input_data = [{"command": "Get-Item", "parameters": {"-Path": "."}}]
+        result = _construct_script(input_data, pathlib.Path("."))
+        self.assertIn("-Path '.'", result)
+
     @patch('mcp_server_for_powershell.server.subprocess.Popen')
     def test_pipeline(self, mock_popen):
         process_mock = MagicMock()

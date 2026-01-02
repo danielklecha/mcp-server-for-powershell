@@ -26,6 +26,30 @@ class TestExpandedRestrictions(unittest.TestCase):
             "Save-Module",
             "Publish-Module"
         ]
+        # Additional module/script/package management commands that must be restricted
+        restricted.extend([
+            "Import-Module",
+            "Remove-Module",
+            "Add-PSSnapin",
+            "Remove-PSSnapin",
+            "Install-Script",
+            "Save-Script",
+            "Uninstall-Script",
+            "Install-Package",
+            "Uninstall-Package",
+            # Package provider / package discovery
+            "Install-PackageProvider",
+            "Save-Package",
+            "Find-Package",
+            # Additional package provider/source management
+            "Find-PackageProvider",
+            "Get-PackageProvider",
+            "Uninstall-PackageProvider",
+            "Get-Package",
+            "Get-PackageSource",
+            "Register-PackageSource",
+            "Unregister-PackageSource",
+        ])
         for cmd in restricted:
             with self.assertRaises(ValueError, msg=f"{cmd} should be restricted"):
                 _validate_command(cmd)
@@ -61,6 +85,11 @@ class TestExpandedRestrictions(unittest.TestCase):
                 _validate_command(cmd)
             except ValueError:
                 self.fail(f"{cmd} raised ValueError unexpectedly!")
+
+    def test_bits_transfer_restricted(self):
+        # BITS transfers should be restricted as they can download/upload files silently
+        with self.assertRaises(ValueError, msg="Start-BitsTransfer should be restricted"):
+            _validate_command("Start-BitsTransfer")
 
 if __name__ == '__main__':
     unittest.main()

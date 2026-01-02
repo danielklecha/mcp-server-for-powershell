@@ -70,6 +70,13 @@ class TestRestrictedCommands(unittest.TestCase):
         except ValueError:
             self.fail("Get-Date raised ValueError unexpectedly!")
 
+    def test_validate_command_logs_when_blocked(self):
+        # Ensure logger.warning is called when a command is blocked
+        with patch('mcp_server_for_powershell.server.logger') as mock_logger:
+            with self.assertRaises(ValueError):
+                server._validate_command("Invoke-Expression")
+            mock_logger.warning.assert_called()
+
     def test_override_restrictions_empty(self):
         # Simulate --restricted-commands (empty logic)
         # Verify that clearing the list allows previously restricted commands

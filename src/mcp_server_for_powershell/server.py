@@ -4,6 +4,7 @@ import re
 import sys
 import os
 import json
+import logging
 from mcp.server.fastmcp import FastMCP
 import base64
 import subprocess
@@ -15,6 +16,10 @@ RESTRICTED_COMMANDS = None
 RESTRICTED_DIRECTORIES = None
 LANGUAGE_MODE = 1
 SERVER_CWD = None
+
+# Standard logger for auditing blocked/invalid operations
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 def _get_default_restricted_commands() -> list[str]:
     """Returns a list of default restricted commands based on the operating system."""
@@ -73,6 +78,31 @@ def _get_default_restricted_commands() -> list[str]:
         "Update-Module",
         "Save-Module",
         "Publish-Module",
+        "Import-Module",
+        "Remove-Module",
+        "Add-PSSnapin",
+        "Remove-PSSnapin",
+        "Install-Script",
+        "Save-Script",
+        "Uninstall-Script",
+        "Install-Package",
+        "Uninstall-Package",
+        "Install-PackageProvider",
+        "Save-Package",
+        "Find-Package",
+        "Find-PackageProvider",
+        "Get-PackageProvider",
+        "Uninstall-PackageProvider",
+        "Get-Package",
+        "Get-PackageSource",
+        "Register-PackageSource",
+        "Unregister-PackageSource",
+        "Get-PackageSource",
+
+        # PowerShell repository
+        "Register-PSRepository",
+        "Register-PSResourceRepository",
+        "Set-PSRepository",
         
         # Job Management
         "Start-Job", "sajb",
@@ -107,6 +137,9 @@ def _get_default_restricted_commands() -> list[str]:
         # Archive Management (Read/Write)
         "Compress-Archive",
         "Expand-Archive",
+
+        # Background Intelligent Transfer Service (can transfer files silently)
+        "Start-BitsTransfer",
 
         # Transcript (Writes to disk)
         "Start-Transcript",
@@ -346,13 +379,19 @@ def _is_restricted_path(path_input: str | pathlib.Path, cwd_path: pathlib.Path) 
                 pass
     return False
 
+
+def _log_and_raise(msg: str):
+    """Helper to log a warning and raise ValueError with the same message."""
+    logger.warning(msg)
+    raise ValueError(msg)
+
 def _validate_parameter(value: str, cwd_path: pathlib.Path) -> None:
     """Validates if a string parameter resolves to a restricted directory."""
     if not isinstance(value, str):
         return
     # Validating parameter with awareness of CWD
     if _is_restricted_path(value, cwd_path):
-         raise ValueError(f"Access to restricted directory path '{value}' is denied.")
+         _log_and_raise(f"Access to restricted directory path '{value}' is denied.")
 
 def _serialize_parameter(value, cwd_path: pathlib.Path) -> str:
     """Serializes a Python value to a PowerShell literal string."""
@@ -384,12 +423,12 @@ def _serialize_parameter(value, cwd_path: pathlib.Path) -> str:
 def _validate_command(cmd_name: str) -> None:
     """Validates if the command is in the allowed list."""
     if not cmd_name:
-        raise ValueError("Invalid command object: missing 'command' field.")
+        _log_and_raise("Invalid command object: missing 'command' field.")
     
     # Check for whitespace in command name (prevent injection/obfuscation)
     # Checks for space, tab, newline, etc.
     if re.search(r'\s', cmd_name):
-        raise ValueError(f"Command name '{cmd_name}' contains whitespace (space, tab, etc.), which is not allowed.")
+        _log_and_raise(f"Command name '{cmd_name}' contains whitespace (space, tab, etc.), which is not allowed.")
         
     cmds_to_check = RESTRICTED_COMMANDS if RESTRICTED_COMMANDS is not None else DEFAULT_RESTRICTED_COMMANDS
     
@@ -401,12 +440,12 @@ def _validate_command(cmd_name: str) -> None:
              return # Explicitly allowed
         
         # If Allow List is active but command is not in it, deny.
-        raise ValueError(f"Command '{cmd_name}' is not in the allowed list.")
+        _log_and_raise(f"Command '{cmd_name}' is not in the allowed list.")
 
     # 2. Check Restricted List (Default fallback)
     # Only reachable if ALLOWED_COMMANDS is empty.
     if cmd_name.lower() in [rc.lower() for rc in cmds_to_check]:
-        raise ValueError(f"Command '{cmd_name}' is restricted and cannot be executed.")
+        _log_and_raise(f"Command '{cmd_name}' is restricted and cannot be executed.")
 
 def _build_dotnet_command(cmd_name: str, params: list | None, cwd_path: pathlib.Path) -> str:
     """Builds a .NET static method call string."""
@@ -433,6 +472,11 @@ def _build_standard_command(cmd_name: str, params: list | dict | None, cwd_path:
         elif isinstance(params, dict):
             # Named parameters
             for k, v in params.items():
+                # Parameter names must be strings. If they don't start with '-', auto-prefix it.
+                if not isinstance(k, str):
+                    _log_and_raise(f"Parameter name '{k}' for command '{cmd_name}' must be a string and start with '-'.")
+                if not k.startswith("-"):
+                    k = f"-{k}"
                 parts.append(k)
                 parts.append(_serialize_parameter(v, cwd_path))
         else:

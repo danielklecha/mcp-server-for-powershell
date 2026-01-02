@@ -76,6 +76,8 @@ class TestSecurityHardening(unittest.TestCase):
             "Export-Csv", "Read-Host", "New-Object", "Out-GridView", "Invoke-CimMethod",
             "Expand-Archive", "Compress-Archive", "Start-Transcript", "Set-Variable", "Enter-PSHostProcess"
         ]
+        # Also prevent adding package repositories/repo registration
+        new_restrictions.extend(["Register-PSRepository", "Register-PSResourceRepository", "Set-PSRepository"])
         
         if os.name == 'nt':
             new_restrictions.extend([
