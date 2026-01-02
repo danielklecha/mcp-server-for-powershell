@@ -66,7 +66,7 @@ class TestSecurityHardening(unittest.TestCase):
         network_cmds = ["Invoke-WebRequest", "Invoke-RestMethod", "Test-Connection"]
         for cmd in network_cmds:
             try:
-                server._validate_command(cmd)
+                server._validate_command(cmd, self.cwd)
             except ValueError:
                 self.fail(f"{cmd} should be allowed but raised ValueError")
 
@@ -92,11 +92,11 @@ class TestSecurityHardening(unittest.TestCase):
             ])
         for cmd in new_restrictions:
             with self.assertRaises(ValueError, msg=f"{cmd} should be restricted"):
-                server._validate_command(cmd)
+                server._validate_command(cmd, self.cwd)
                 
             # Case insensitivity check
             with self.assertRaises(ValueError, msg=f"{cmd.upper()} should be restricted"):
-                server._validate_command(cmd.upper())
+                server._validate_command(cmd.upper(), self.cwd)
 
     def test_allowed_overrides_restricted(self):
         """Verify that explicit allowed commands override default restrictions."""
@@ -108,11 +108,103 @@ class TestSecurityHardening(unittest.TestCase):
         
         try:
             # Should pass if logic is updated, currently fails
-            server._validate_command("Set-Content")
+            server._validate_command("Set-Content", self.cwd)
         except ValueError:
             self.fail("Set-Content should be allowed if explicitly in ALLOWED_COMMANDS")
         finally:
             server.ALLOWED_COMMANDS = original_allowed
+
+    def test_command_canonicalization_and_path_variants(self):
+        """Verify that command paths and casing are canonicalized so restrictions apply."""
+        # certutil.exe is in default restricted list on Windows
+        if os.name == 'nt':
+            # 1. Full path
+            cmd_path = r"C:\Windows\System32\certutil.exe"
+            with self.assertRaises(ValueError, msg="Full path to certutil.exe should be blocked"):
+                server._validate_command(cmd_path, self.cwd)
+
+            # 2. Mixed case full path
+            cmd_path_mixed = r"C:\WINDOWS\System32\CERTUTIL.EXE"
+            with self.assertRaises(ValueError, msg="Mixed case path to certutil.exe should be blocked"):
+                server._validate_command(cmd_path_mixed, self.cwd)
+
+            # 3. Just filename variations
+            with self.assertRaises(ValueError):
+                 server._validate_command("CERTUTIL.EXE", self.cwd)
+            
+            # 4. Check that similar looking commands are NOT blocked if legal (e.g. mycertutil.exe)
+            # Assuming mycertutil.exe is not restricted
+            try:
+                server._validate_command("mycertutil.exe", self.cwd) # Should pass
+            except ValueError:
+                self.fail("mycertutil.exe should not be blocked")
+
+    def test_explicit_path_restriction(self):
+        """Verify that any command (even allowed names) is blocked if in restricted dir."""
+        if os.name != 'nt':
+            return
+
+        # "ping.exe" is usually allowed. But if we try to run it via Explicit Path to C:\Windows\System32...
+        # It is now BLOCKED because C:\Windows is restricted.
+        # This forces users to use PATH lookup (implicit trust of system config) or trusted dirs.
+        
+        cmd_path = r"C:\Windows\System32\ping.exe"
+        
+        # Ensure ping is NOT in restricted commands (it's not by default)
+        
+        with self.assertRaises(ValueError, msg=f"Explicit path {cmd_path} should be blocked due to directory restriction"):
+            server._validate_command(cmd_path, self.cwd)
+
+    def test_explicit_path_safe_dir(self):
+        """Verify that explicit path in safe dir is allowed."""
+        # Assume C:\Temp\Safe is safe
+        cmd_path = r"C:\Temp\Safe\mytool.exe"
+        try:
+             server._validate_command(cmd_path, self.cwd)
+        except ValueError as e:
+             self.fail(f"Safe path execution failed: {e}")
+
+    def test_allowed_overrides_path_restriction(self):
+        """Verify that ALLOWED_COMMANDS overrides even the path check."""
+        if os.name != 'nt':
+            return
+            
+        cmd_path = r"C:\Windows\System32\ping.exe"
+        
+        # Explicitly allow this specific path/command
+        original_allowed = server.ALLOWED_COMMANDS
+        # The allow list checks against canonical name (basename lower)
+        # So if we allow "ping.exe", does it allow "C:\Windows\System32\ping.exe"?
+        # Current logic: _canonicalize(cmd_name) -> "ping.exe".
+        # If "ping.exe" in ALLOWED, we return immediately.
+        
+        server.ALLOWED_COMMANDS = ["ping.exe"]
+        try:
+            server._validate_command(cmd_path, self.cwd)
+        except ValueError:
+            self.fail("Explicitly allowed command should pass even if path is restricted")
+        finally:
+             server.ALLOWED_COMMANDS = original_allowed
+
+    def test_restricted_directory_case_insensitivity(self):
+        """Verify that directory restrictions are case-insensitive on Windows."""
+        if os.name != 'nt':
+            return 
+            
+        # C:\Windows is restricted by default on Windows
+        
+        # 1. Valid case
+        self.assertTrue(server._is_restricted_path(r"C:\Windows\System32", self.cwd), "Standard C:\\Windows path should be restricted")
+        
+        # 2. Lowercase
+        self.assertTrue(server._is_restricted_path(r"c:\windows\system32", self.cwd), "Lowercase c:\\windows should be restricted")
+        
+        # 3. Mixed case
+        self.assertTrue(server._is_restricted_path(r"C:\WiNdOwS\SyStEm32", self.cwd), "Mixed case C:\\WiNdOwS should be restricted")
+        
+        # 4. Complex path with dots
+        complex_path = r"C:\Users\..\Windows\System32"
+        self.assertTrue(server._is_restricted_path(complex_path, self.cwd), "Path resolving to Windows via .. should be restricted")
 
 if __name__ == '__main__':
     unittest.main()

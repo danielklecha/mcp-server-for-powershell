@@ -27,6 +27,7 @@ class TestRestrictedCommands(unittest.TestCase):
         # Store original values
         self.original_restricted = server.RESTRICTED_COMMANDS
         self.original_defaults = server.DEFAULT_RESTRICTED_COMMANDS
+        self.cwd = pathlib.Path(os.getcwd())
         
         # Reset to defaults
         server.RESTRICTED_COMMANDS = list(server.DEFAULT_RESTRICTED_COMMANDS)
@@ -56,17 +57,17 @@ class TestRestrictedCommands(unittest.TestCase):
     def test_validate_command_blocks_restricted(self):
         # Test default blocking
         with self.assertRaises(ValueError) as cm:
-            server._validate_command("Invoke-Expression")
+            server._validate_command("Invoke-Expression", self.cwd)
         self.assertIn("restricted", str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            server._validate_command(".")
+            server._validate_command(".", self.cwd)
         self.assertIn("restricted", str(cm.exception))
 
     def test_validate_command_allows_safe(self):
         # Test safe command
         try:
-            server._validate_command("Get-Date")
+            server._validate_command("Get-Date", self.cwd)
         except ValueError:
             self.fail("Get-Date raised ValueError unexpectedly!")
 
@@ -74,7 +75,7 @@ class TestRestrictedCommands(unittest.TestCase):
         # Ensure logger.warning is called when a command is blocked
         with patch('mcp_server_for_powershell.server.logger') as mock_logger:
             with self.assertRaises(ValueError):
-                server._validate_command("Invoke-Expression")
+                server._validate_command("Invoke-Expression", self.cwd)
             mock_logger.warning.assert_called()
 
     def test_override_restrictions_empty(self):
@@ -83,7 +84,7 @@ class TestRestrictedCommands(unittest.TestCase):
         server.RESTRICTED_COMMANDS = []
         
         try:
-            server._validate_command("Invoke-Expression")
+            server._validate_command("Invoke-Expression", self.cwd)
         except ValueError:
             self.fail("Invoke-Expression raised ValueError even though restricted list is empty!")
 
@@ -93,13 +94,13 @@ class TestRestrictedCommands(unittest.TestCase):
         
         # Now Invoke-Expression should be allowed
         try:
-            server._validate_command("Invoke-Expression")
+            server._validate_command("Invoke-Expression", self.cwd)
         except ValueError:
             self.fail("Invoke-Expression raised ValueError with custom restriction list!")
 
         # And Get-Date should be blocked
         with self.assertRaises(ValueError) as cm:
-            server._validate_command("Get-Date")
+            server._validate_command("Get-Date", self.cwd)
         self.assertIn("restricted", str(cm.exception))
 
 if __name__ == '__main__':

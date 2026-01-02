@@ -277,6 +277,12 @@ def _get_default_restricted_commands() -> list[str]:
             "rundll32.exe", "rundll32",
             "mshta.exe", "mshta",
             "regsvr32.exe", "regsvr32",
+            "certutil.exe", "certutil",
+            "bitsadmin.exe", "bitsadmin",
+            "msiexec.exe", "msiexec",
+            "ftp.exe", "ftp",
+            "tftp.exe", "tftp",
+            "curl.exe", "wget.exe",
         ])
         
     return common_commands
@@ -360,25 +366,19 @@ def _is_restricted_path(path_input: str | pathlib.Path, cwd_path: pathlib.Path) 
         pass
 
     if path_obj:
-        # Check against restricted directories
+        # Check against restricted directories using normalized absolute paths to avoid bypasses
+        path_str = os.path.normcase(os.path.abspath(str(path_obj)))
         for d in dirs_to_check:
-            # Skip drive-only checks here as they were likely handled or won't resolve effectively via abspath if they are virtual
             if d.endswith(":"):
                 continue
-
-            r_path = pathlib.Path(d)
             try:
-                # We need to ensure r_path is absolute for comparison
-                if not r_path.is_absolute():
-                     r_path = r_path.absolute()
-                
-                # Check match or ancestry
-                if path_obj == r_path or r_path in path_obj.parents:
-                     return True
+                r_str = os.path.normcase(os.path.abspath(str(d)))
+                # Match exact path or ancestor (ensure separator so '/etc' doesn't match '/etc2')
+                if path_str == r_str or path_str.startswith(r_str + os.sep):
+                    return True
             except Exception:
                 pass
     return False
-
 
 def _log_and_raise(msg: str):
     """Helper to log a warning and raise ValueError with the same message."""
@@ -420,7 +420,7 @@ def _serialize_parameter(value, cwd_path: pathlib.Path) -> str:
         # Fallback to string representation
         return _serialize_parameter(str(value), cwd_path)
 
-def _validate_command(cmd_name: str) -> None:
+def _validate_command(cmd_name: str, cwd_path: pathlib.Path) -> None:
     """Validates if the command is in the allowed list."""
     if not cmd_name:
         _log_and_raise("Invalid command object: missing 'command' field.")
@@ -430,21 +430,35 @@ def _validate_command(cmd_name: str) -> None:
     if re.search(r'\s', cmd_name):
         _log_and_raise(f"Command name '{cmd_name}' contains whitespace (space, tab, etc.), which is not allowed.")
         
+    # Canonicalize the command for robust comparisons (basename + lower-case)
+    # Strip quotes and whitespace
+    cmd_clean = cmd_name.strip().strip('\'"')
+
+    # Prepare comparison key for Restricted Lists
+    # We use basename to prevent path-based bypass (e.g. .\certutil.exe vs certutil.exe)
+    # .NET methods ([Console]::WriteLine) pass through basename unchanged.
+    try:
+        comparison_key = os.path.basename(cmd_clean).lower()
+    except Exception:
+        comparison_key = cmd_clean.lower()
+    
     cmds_to_check = RESTRICTED_COMMANDS if RESTRICTED_COMMANDS is not None else DEFAULT_RESTRICTED_COMMANDS
     
     # 1. Check Allow List (Priority)
-    # If an allow list is defined, it serves as the ultimate source of truth.
-    # If a command is allowed, it skips the restriction check.
     if ALLOWED_COMMANDS:
-        if cmd_name.lower() in [ac.lower() for ac in ALLOWED_COMMANDS]:
+        if comparison_key in [ac.lower() for ac in ALLOWED_COMMANDS]:
              return # Explicitly allowed
         
         # If Allow List is active but command is not in it, deny.
         _log_and_raise(f"Command '{cmd_name}' is not in the allowed list.")
+    
+    # Check Restricted Directory BEFORE getting basename (so we check full path)
+    if any(sep in cmd_clean for sep in [os.sep, '/', '\\']):
+        if _is_restricted_path(cmd_clean, cwd_path):
+             _log_and_raise(f"Command path '{cmd_clean}' is in a restricted directory.")
 
     # 2. Check Restricted List (Default fallback)
-    # Only reachable if ALLOWED_COMMANDS is empty.
-    if cmd_name.lower() in [rc.lower() for rc in cmds_to_check]:
+    if comparison_key in [rc.lower() for rc in cmds_to_check]:
         _log_and_raise(f"Command '{cmd_name}' is restricted and cannot be executed.")
 
 def _build_dotnet_command(cmd_name: str, params: list | None, cwd_path: pathlib.Path) -> str:
@@ -489,7 +503,7 @@ def _build_command_chain(cmd_obj: dict, cwd_path: pathlib.Path) -> str:
     Handles 'command', 'parameters', and 'then' (pipeline).
     """
     cmd_name = cmd_obj.get("command")
-    _validate_command(cmd_name)
+    _validate_command(cmd_name, cwd_path)
 
     params = cmd_obj.get("parameters")
     
