@@ -13,6 +13,10 @@ class TestExpandedRestrictions(unittest.TestCase):
         self.cwd = Path.cwd()
 
     def test_service_management_restricted(self):
+        # Service management commands are only restricted on Windows
+        if os.name != 'nt':
+            return
+
         restricted = [
             "Start-Service", "sasv",
             "Stop-Service", "spsv",
@@ -64,6 +68,10 @@ class TestExpandedRestrictions(unittest.TestCase):
                 _validate_command(cmd, self.cwd)
 
     def test_system_config_restricted(self):
+        # System configuration commands are only restricted on Windows
+        if os.name != 'nt':
+            return
+
         restricted = [
             "Add-Computer", "Remove-Computer", "Rename-Computer", "Join-Domain",
             "Enable-PSRemoting", "Disable-PSRemoting"

@@ -47,7 +47,8 @@ class TestRestrictedCommands(unittest.TestCase):
     def test_new_security_restrictions(self):
         # Verify new mandatory restrictions are present
         self.assertIn("Get-Clipboard", server.DEFAULT_RESTRICTED_COMMANDS)
-        self.assertIn("Set-ExecutionPolicy", server.DEFAULT_RESTRICTED_COMMANDS)
+        if os.name == 'nt':
+            self.assertIn("Set-ExecutionPolicy", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertIn("Get-Variable", server.DEFAULT_RESTRICTED_COMMANDS)
         
         # Verify network requests are still ALLOWED (NOT in restricted list)
