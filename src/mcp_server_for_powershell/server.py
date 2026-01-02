@@ -185,6 +185,8 @@ def _get_default_restricted_commands() -> list[str]:
 
             # Process/Shell escapism (Windows binaries)
             "cmd", "cmd.exe", "wscript", "cscript",
+            "powershell.exe", "pwsh.exe",
+            "bash.exe", "wsl.exe", 
             
             # Service Management
             "Start-Service", "sasv",
@@ -283,8 +285,20 @@ def _get_default_restricted_commands() -> list[str]:
             "ftp.exe", "ftp",
             "tftp.exe", "tftp",
             "curl.exe", "wget.exe",
+            
+            # LOLBins
+            "MSBuild.exe",
+            "InstallUtil.exe",
+            "PresentationHost.exe", 
+            "diskshadow.exe",
+            "odbcconf.exe",
+            "forfiles.exe",
+            "pcalua.exe",
+            "tracker.exe",
+            "regasm.exe",
+            "regsvcs.exe",
         ])
-        
+
     return common_commands
 
 DEFAULT_RESTRICTED_COMMANDS = _get_default_restricted_commands()
