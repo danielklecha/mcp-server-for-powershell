@@ -62,11 +62,55 @@ class TestSecurityHardening(unittest.TestCase):
         self.assertFalse(server._is_restricted_path("C:", self.cwd), "C: drive root itself usually allowed unless explicitly blocked or resolves to restricted")
 
     def test_network_commands_allowed(self):
-        """Verify that Invoke-WebRequest is safely allowed (not in restricted list)."""
+        """Verify that network commands are safely allowed (not in restricted list)."""
+        network_cmds = ["Invoke-WebRequest", "Invoke-RestMethod", "Test-Connection"]
+        for cmd in network_cmds:
+            try:
+                server._validate_command(cmd)
+            except ValueError:
+                self.fail(f"{cmd} should be allowed but raised ValueError")
+
+    def test_extended_restrictions(self):
+        """Verify newly added restricted commands are blocked."""
+        new_restrictions = [
+            "Export-Csv", "Read-Host", "New-Object", "Out-GridView", "Invoke-CimMethod",
+            "Expand-Archive", "Compress-Archive", "Start-Transcript", "Set-Variable", "Enter-PSHostProcess"
+        ]
+        
+        if os.name == 'nt':
+            new_restrictions.extend([
+                "Format-Volume", "Clear-Disk", # Disk
+                "Set-Acl", "Unblock-File",    # Security
+                "reg.exe", "net.exe", "netsh", # Native
+                "schtasks", "vssadmin",
+                "Set-ItemProperty", "New-LocalUser", # Registry & User
+                "Set-MpPreference", "New-NetFirewallRule", # Defender/Firewall
+                "Register-ScheduledTask", "Export-PfxCertificate", # Tasks/Certs
+                "taskkill.exe"
+            ])
+        for cmd in new_restrictions:
+            with self.assertRaises(ValueError, msg=f"{cmd} should be restricted"):
+                server._validate_command(cmd)
+                
+            # Case insensitivity check
+            with self.assertRaises(ValueError, msg=f"{cmd.upper()} should be restricted"):
+                server._validate_command(cmd.upper())
+
+    def test_allowed_overrides_restricted(self):
+        """Verify that explicit allowed commands override default restrictions."""
+        # Simulate server started with --allowed-commands Set-Content
+        original_allowed = server.ALLOWED_COMMANDS
+        server.ALLOWED_COMMANDS = ["Set-Content"]
+        # Ensure Restricted is default
+        server.RESTRICTED_COMMANDS = None
+        
         try:
-            server._validate_command("Invoke-WebRequest")
+            # Should pass if logic is updated, currently fails
+            server._validate_command("Set-Content")
         except ValueError:
-            self.fail("Invoke-WebRequest should be allowed but raised ValueError")
+            self.fail("Set-Content should be allowed if explicitly in ALLOWED_COMMANDS")
+        finally:
+            server.ALLOWED_COMMANDS = original_allowed
 
 if __name__ == '__main__':
     unittest.main()

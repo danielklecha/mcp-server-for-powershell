@@ -16,102 +16,239 @@ RESTRICTED_DIRECTORIES = None
 LANGUAGE_MODE = 1
 SERVER_CWD = None
 
-DEFAULT_RESTRICTED_COMMANDS = [
-    # Execution/Process
-    "Invoke-Expression", "iex",
-    "Start-Process", "start", "spps",
-    "Stop-Process", "kill", "spp",
-    "Restart-Computer",
-    "Stop-Computer",
-    ".", # Dot-sourcing
-    "Add-Type", # Compilation
-    "Invoke-ASCmd", # Analysis Services
-
-    # System / Management
-    "Set-ExecutionPolicy",
-    "Clear-EventLog",
-    "Limit-EventLog",
-    "Remove-EventLog",
-    "New-EventLog",
-    "Write-EventLog",
-
-    # Sessions
-    "Enter-PSSession",
-    "New-PSSession",
-
-    # Objects
-    "New-Object",
-
-    # Navigation
-    "Set-Location", "cd", "chdir", "sl",
-    "Push-Location", "pushd",
-    "Pop-Location", "popd",
-
-    # Dangerous / System
-    "&", "call", # Call operator
-    "Out-File", "tee", "Tee-Object",
-    "Set-Item", "si",
-    "Clear-Item", "cli",
-    "Invoke-Item", "ii",
-    "New-Alias", "nal", "Set-Alias", "sal",
-    "Invoke-Command", "icm",
+def _get_default_restricted_commands() -> list[str]:
+    """Returns a list of default restricted commands based on the operating system."""
     
-    # Process/Shell escapism
-    "pwsh", "powershell", "cmd", "cmd.exe", "wscript", "cscript",
+    # Cross-platform Critical Restrictions
+    common_commands = [
+        # Execution/Process
+        "Invoke-Expression", "iex",
+        "Start-Process", "start", "spps",
+        "Stop-Process", "kill", "spp",
+        "Restart-Computer",
+        "Stop-Computer",
+        ".", # Dot-sourcing
+        "Add-Type", # Compilation
+        
+        # Session / Navigation
+        "Enter-PSSession",
+        "New-PSSession",
+        "Set-Location", "cd", "chdir", "sl",
+        "Push-Location", "pushd",
+        "Pop-Location", "popd",
+        
+        # Dangerous / System
+        "&", "call", # Call operator
+        "Out-File", "tee", "Tee-Object",
+        "Set-Item", "si",
+        "Clear-Item", "cli",
+        "Invoke-Item", "ii",
+        "New-Alias", "nal", "Set-Alias", "sal",
+        "Invoke-Command", "icm",
+        
+        # Objects (DotNet/COM - New-Object is cross-platform)
+        "New-Object",
+        
+        # Process/Shell escapism
+        "pwsh", "powershell", 
+        
+        # Privacy / Secrets
+        "Get-Clipboard", "gcb",
+        "Set-Clipboard", "scb",
+        "Get-Variable", "gv",
 
-    # Privacy / Secrets
-    "Get-Clipboard", "gcb",
-    "Set-Clipboard", "scb",
-    "Get-Variable", "gv",
+        # File System (Modifications usually restricted by default)
+        "Remove-Item", "rm", "rd", "erase", "del", "ri",
+        "New-Item", "ni", "md", "mkdir",
+        "Set-Content", "sc", 
+        "Add-Content", "ac",
+        "Clear-Content", "clc",
+        "Copy-Item", "cp", "copy", "cpi",
+        "Move-Item", "mv", "move", "mi",
+        "Rename-Item", "ren", "rni",
+        
+        # Module Management
+        "Install-Module",
+        "Uninstall-Module",
+        "Update-Module",
+        "Save-Module",
+        "Publish-Module",
+        
+        # Job Management
+        "Start-Job", "sajb",
+        "Stop-Job", "spjb",
+        "Remove-Job", "rjb",
+        
+        # Debugging
+        "Debug-Process",
+        "Debug-Job",
+        
+        # WMI / CIM Management (OMI can enable these on Linux)
+        "Invoke-CimMethod",
+        "Invoke-WmiMethod",
+        "Set-WmiInstance",
+        "Set-CimInstance",
+        "New-CimInstance",
+        "New-WmiObject",
+        "Remove-CimInstance",
+        "Remove-WmiObject",
+        "Register-CimIndicationEvent",
+        "Register-WmiEvent",
+        
+        # File Export / Writing
+        "Export-Csv",
+        "Export-Clixml",
+        "Export-Html",
+        "Export-Json",
+        "Export-Alias",
+        "Export-Console",
+        "Export-Counter",
+        
+        # Archive Management (Read/Write)
+        "Compress-Archive",
+        "Expand-Archive",
 
-    # File System (Modifications usually restricted by default)
-    "Remove-Item", "rm", "rd", "erase", "del", "ri",
-    "New-Item", "ni", "md", "mkdir",
-    "Set-Content", "sc", 
-    "Add-Content", "ac",
-    "Clear-Content", "clc",
-    "Copy-Item", "cp", "copy", "cpi",
-    "Move-Item", "mv", "move", "mi",
-    "Rename-Item", "ren", "rni",
+        # Transcript (Writes to disk)
+        "Start-Transcript",
+        "Stop-Transcript",
+        
+        # Variable Management (State Modification)
+        "New-Variable", "nv",
+        "Set-Variable", "sb", "sv",
+        "Remove-Variable", "rv",
+        "Clear-Variable", "clv",
+        
+        # Session / Management extended
+        "Connect-PSSession",
+        "Disconnect-PSSession",
+        "Receive-PSSession",
+        "Enter-PSHostProcess",
+        "Exit-PSHostProcess",
 
-    # Service Management
-    "Start-Service", "sasv",
-    "Stop-Service", "spsv",
-    "Restart-Service", 
-    "Suspend-Service", "ssv",
-    "Resume-Service",
-    "Set-Service",
-    "New-Service",
-    "Remove-Service",
+        # UI / Printers
+        "Show-Command",
+        "Out-Printer", "lp",
+        
+        # Interactive
+        "Read-Host",
+        "Get-Credential",
+        "Out-GridView",
+        "Out-ConsoleGridView",
+    ]
 
-    # Module Management
-    "Install-Module",
-    "Uninstall-Module",
-    "Update-Module",
-    "Save-Module",
-    "Publish-Module",
+    # Windows-specific Restrictions
+    if os.name == 'nt':
+        common_commands.extend([
+            # Analysis Services
+            "Invoke-ASCmd",
+            
+            # System / Management
+            "Set-ExecutionPolicy",
+            "Clear-EventLog",
+            "Limit-EventLog",
+            "Remove-EventLog",
+            "New-EventLog",
+            "Write-EventLog",
 
-    # System Configuration
-    "Add-Computer",
-    "Remove-Computer",
-    "Rename-Computer",
-    "Join-Domain",
+            # Process/Shell escapism (Windows binaries)
+            "cmd", "cmd.exe", "wscript", "cscript",
+            
+            # Service Management
+            "Start-Service", "sasv",
+            "Stop-Service", "spsv",
+            "Restart-Service", 
+            "Suspend-Service", "ssv",
+            "Resume-Service",
+            "Set-Service",
+            "New-Service",
+            "Remove-Service",
+            
+            # System Configuration
+            "Add-Computer",
+            "Remove-Computer",
+            "Rename-Computer",
+            "Join-Domain",
+            "Checkpoint-Computer",
+            "Restore-Computer",
+            
+            # Remoting / WSMan
+            "Enable-PSRemoting",
+            "Disable-PSRemoting",
+            "Enable-WSManCredSSP",
+            "Disable-WSManCredSSP",
+            
+            # Disk / Volume Management
+            "Format-Volume",
+            "Clear-Disk",
+            "Resize-Partition",
+            "Remove-Partition",
+            "Optimize-Volume",
+            
+            # Security / System Modification
+            "Set-Acl",
+            "Unblock-File",
+            "Set-Date",
+            
+            # Registry Property Management
+            "Set-ItemProperty", "sp",
+            "New-ItemProperty",
+            "Remove-ItemProperty",
+            "Rename-ItemProperty",
+            "Copy-ItemProperty",
+            "Move-ItemProperty",
+            "Clear-ItemProperty", "clp",
+            
+            # Local User/Group Management
+            "New-LocalUser",
+            "Set-LocalUser",
+            "Remove-LocalUser",
+            "Enable-LocalUser",
+            "Disable-LocalUser",
+            "Rename-LocalUser",
+            "New-LocalGroup",
+            "Remove-LocalGroup",
+            "Rename-LocalGroup",
+            "Add-LocalGroupMember",
+            "Remove-LocalGroupMember",
+            
+            # Defender / Firewall / Security
+            "Set-MpPreference",
+            "Add-MpPreference",
+            "Remove-MpPreference",
+            "Set-NetFirewallRule",
+            "New-NetFirewallRule",
+            "Remove-NetFirewallRule",
+            
+            # Scheduled Tasks
+            "Register-ScheduledTask",
+            "Unregister-ScheduledTask",
+            "Set-ScheduledTask",
+            
+            # Certificates
+            "Export-PfxCertificate",
+            "Export-Certificate",
+            
+            # Native Windows Binaries
+            "reg.exe", "reg",
+            "net.exe", "net",
+            "netsh.exe", "netsh",
+            "schtasks.exe", "schtasks",
+            "attrib.exe", "attrib",
+            "icacls.exe", "icacls",
+            "takeown.exe", "takeown",
+            "vssadmin.exe", "vssadmin",
+            "taskkill.exe", "taskkill",
+            "sc.exe", 
+            "shutdown.exe", "shutdown",
+            "wmic.exe", "wmic",
+            "rundll32.exe", "rundll32",
+            "mshta.exe", "mshta",
+            "regsvr32.exe", "regsvr32",
+        ])
+        
+    return common_commands
 
-    # Remoting / WSMan
-    "Enable-PSRemoting",
-    "Disable-PSRemoting",
-    "Enable-WSManCredSSP",
-    "Disable-WSManCredSSP",
-
-    # Job Management
-    "Start-Job", "sajb",
-    "Stop-Job", "spjb",
-    "Remove-Job", "rjb",
-    
-    # Debugging
-    "Debug-Process",
-    "Debug-Job",
-]
+DEFAULT_RESTRICTED_COMMANDS = _get_default_restricted_commands()
 
 
 def _get_default_restricted_directories() -> list[str]:
@@ -256,14 +393,20 @@ def _validate_command(cmd_name: str) -> None:
         
     cmds_to_check = RESTRICTED_COMMANDS if RESTRICTED_COMMANDS is not None else DEFAULT_RESTRICTED_COMMANDS
     
+    # 1. Check Allow List (Priority)
+    # If an allow list is defined, it serves as the ultimate source of truth.
+    # If a command is allowed, it skips the restriction check.
+    if ALLOWED_COMMANDS:
+        if cmd_name.lower() in [ac.lower() for ac in ALLOWED_COMMANDS]:
+             return # Explicitly allowed
+        
+        # If Allow List is active but command is not in it, deny.
+        raise ValueError(f"Command '{cmd_name}' is not in the allowed list.")
+
+    # 2. Check Restricted List (Default fallback)
+    # Only reachable if ALLOWED_COMMANDS is empty.
     if cmd_name.lower() in [rc.lower() for rc in cmds_to_check]:
         raise ValueError(f"Command '{cmd_name}' is restricted and cannot be executed.")
-
-    if ALLOWED_COMMANDS:
-        # Note: A .NET method call usually won't match a simple allowlist unless the list contains the full method or class
-        # For now, we assume if ALLOWED_COMMANDS is set, we check against it.
-        if cmd_name.lower() not in [ac.lower() for ac in ALLOWED_COMMANDS]:
-             raise ValueError(f"Command '{cmd_name}' is not in the allowed list.")
 
 def _build_dotnet_command(cmd_name: str, params: list | None, cwd_path: pathlib.Path) -> str:
     """Builds a .NET static method call string."""
