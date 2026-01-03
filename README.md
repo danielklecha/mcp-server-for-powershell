@@ -1,6 +1,8 @@
 # MCP server for PowerShell
 
 [![PyPI](https://img.shields.io/pypi/v/mcp-server-for-powershell)](https://pypi.org/project/mcp-server-for-powershell/)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/mcp-server-for-powershell?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/mcp-server-for-powershell)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/danielklecha/SharpIppNext/blob/master/LICENSE.txt)
 
 ## Disclaimer
 
