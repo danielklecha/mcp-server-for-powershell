@@ -19,26 +19,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      
-      - name: Install Hatch
-        run: pip install hatch
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-      - name: Update Version in pyproject.toml
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Update Version
         run: |
-          # Extract version from tag (remove 'v' prefix)
           VERSION="${GITHUB_REF_NAME#v}"
           echo "Updating version to $VERSION"
-          hatch version "$VERSION"
+          sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" src/mcp_server_for_powershell/__init__.py
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
 
       - name: Run Tests
-        run: hatch run test tests/unit
+        run: uv run pytest tests/unit
 
       - name: Build
-        run: hatch build
+        run: uv build
 
       - name: Create GitHub Release
         env:

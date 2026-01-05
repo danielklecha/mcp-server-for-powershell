@@ -2,19 +2,16 @@
 
 ## Development
 
-- `hatch env create`: Create virtual environment.
-- `hatch shell`: Enter the environment.
-- `hatch run mcp-server-for-powershell`: Run the server.
-- `hatch build`: Build the package.
-- `hatch clean`: Clean up the environment.
-- `hatch run cov`: Run tests with coverage reporting.
+- `uv sync`: Create virtual environment and install dependencies.
+- `uv run mcp-server-for-powershell`: Run the server.
+- `uv build`: Build the package.
 
 ## Testing
 
 To run the tests, use the following command:
 
 ```bash
-hatch test
+uv run pytest
 ```
 
 ### Coverage
@@ -22,19 +19,21 @@ hatch test
 To run tests with coverage reporting:
 
 ```bash
-hatch run cov
+uv run pytest --cov=mcp_server_for_powershell
 ```
 
 ## Code Style
 
-This project uses `ruff` and `black` for code style.
+This project uses `ruff` for code style.
 
 ```bash
-hatch run lint:style
+uv run ruff check .
+uv run ruff format --check .
 ```
 
 To automatically fix standard style issues:
 
 ```bash
-hatch run lint:fmt
+uv run ruff format .
+uv run ruff check --fix .
 ```

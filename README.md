@@ -35,6 +35,31 @@ The server can be configured using the following command-line arguments:
 - **2 (RestrictedLanguage)**: Only allows basic commands.
 - **3 (FullLanguage)**: Unrestricted access.
 
+## Security Profiles
+
+We recommend different configurations based on your security needs:
+
+### Default (Balanced)
+By default, the server runs in **ConstrainedLanguage** mode with a curated blocklist of dangerous commands and restricted system directories. This provides "good enough" defaults for general use, preventing common dangerous operations while allowing most read-only and safe actions.
+
+```bash
+uvx mcp-server-for-powershell
+```
+
+### Safe Mode (Strict)
+For environments requiring stricter controls, use **NoLanguage** mode (`--language-mode 0`). Only built-in commands and cmdlets can be executed.
+
+```bash
+uvx mcp-server-for-powershell --language-mode 0
+```
+
+### Nuclear Mode (Allow-List Only)
+For the highest security "nuclear" option, explicitly whitelist ONLY the commands you need (e.g., allow `get-items` only). This blocks **everything** else by default.
+
+```bash
+uvx mcp-server-for-powershell --allowed-commands Get-Item Get-ChildItem Get-Content
+```
+
 ## License
 
 `mcp-server-for-powershell` is provided as-is under the MIT license.

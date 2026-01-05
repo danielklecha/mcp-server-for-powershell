@@ -1,26 +1,32 @@
-import unittest
-from unittest.mock import MagicMock, patch
-import sys
 import os
 import pathlib
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
 
 # Adjust path to import server
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
 # Mock FastMCP
 mock_mcp_instance = MagicMock()
+
+
 def tool_decorator():
     def decorator(func):
         return func
+
     return decorator
+
+
 mock_mcp_instance.tool.side_effect = tool_decorator
 
 mock_fastmcp_cls = MagicMock(return_value=mock_mcp_instance)
 mock_module = MagicMock()
 mock_module.FastMCP = mock_fastmcp_cls
-sys.modules['mcp.server.fastmcp'] = mock_module
+sys.modules["mcp.server.fastmcp"] = mock_module
 
-import mcp_server_for_powershell.server as server
+from mcp_server_for_powershell import server
+
 
 class TestRestrictedCommands(unittest.TestCase):
     def setUp(self):
@@ -28,7 +34,7 @@ class TestRestrictedCommands(unittest.TestCase):
         self.original_restricted = server.RESTRICTED_COMMANDS
         self.original_defaults = server.DEFAULT_RESTRICTED_COMMANDS
         self.cwd = pathlib.Path(os.getcwd())
-        
+
         # Reset to defaults
         server.RESTRICTED_COMMANDS = list(server.DEFAULT_RESTRICTED_COMMANDS)
 
@@ -47,10 +53,10 @@ class TestRestrictedCommands(unittest.TestCase):
     def test_new_security_restrictions(self):
         # Verify new mandatory restrictions are present
         self.assertIn("Get-Clipboard", server.DEFAULT_RESTRICTED_COMMANDS)
-        if os.name == 'nt':
+        if os.name == "nt":
             self.assertIn("Set-ExecutionPolicy", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertIn("Get-Variable", server.DEFAULT_RESTRICTED_COMMANDS)
-        
+
         # Verify network requests are still ALLOWED (NOT in restricted list)
         self.assertNotIn("Invoke-WebRequest", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertNotIn("iwr", server.DEFAULT_RESTRICTED_COMMANDS)
@@ -74,7 +80,7 @@ class TestRestrictedCommands(unittest.TestCase):
 
     def test_validate_command_logs_when_blocked(self):
         # Ensure logger.warning is called when a command is blocked
-        with patch('mcp_server_for_powershell.server.logger') as mock_logger:
+        with patch("mcp_server_for_powershell.server.logger") as mock_logger:
             with self.assertRaises(ValueError):
                 server._validate_command("Invoke-Expression", self.cwd)
             mock_logger.warning.assert_called()
@@ -83,7 +89,7 @@ class TestRestrictedCommands(unittest.TestCase):
         # Simulate --restricted-commands (empty logic)
         # Verify that clearing the list allows previously restricted commands
         server.RESTRICTED_COMMANDS = []
-        
+
         try:
             server._validate_command("Invoke-Expression", self.cwd)
         except ValueError:
@@ -92,7 +98,7 @@ class TestRestrictedCommands(unittest.TestCase):
     def test_override_restrictions_custom(self):
         # Simulate --restricted-commands Get-Date
         server.RESTRICTED_COMMANDS = ["Get-Date"]
-        
+
         # Now Invoke-Expression should be allowed
         try:
             server._validate_command("Invoke-Expression", self.cwd)
@@ -104,5 +110,6 @@ class TestRestrictedCommands(unittest.TestCase):
             server._validate_command("Get-Date", self.cwd)
         self.assertIn("restricted", str(cm.exception))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
