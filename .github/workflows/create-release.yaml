@@ -25,15 +25,14 @@ jobs:
       - name: Set up Python
         run: uv python install 3.14
 
-      - name: Install the project
-        run: uv sync --all-extras --dev
-
       - name: Update Version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "Updating version to $VERSION"
-          sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" src/mcp_server_for_powershell/__init__.py
-          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          uv version "$VERSION"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
 
       - name: Run Tests
         run: uv run pytest tests/unit
@@ -44,8 +43,7 @@ jobs:
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ github.ref_name }}" dist/* --generate-notes
+        run: gh release create "${{ github.ref_name }}" dist/* --generate-notes
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
