@@ -108,6 +108,9 @@ def _get_default_restricted_commands() -> list[str]:
         "Rename-Item",
         "ren",
         "rni",
+        # Drive Management
+        "New-PSDrive",
+        "Remove-PSDrive",
         # Module Management
         "Install-Module",
         "Uninstall-Module",

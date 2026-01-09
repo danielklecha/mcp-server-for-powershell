@@ -57,6 +57,10 @@ class TestRestrictedCommands(unittest.TestCase):
             self.assertIn("Set-ExecutionPolicy", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertIn("Get-Variable", server.DEFAULT_RESTRICTED_COMMANDS)
 
+        # Verify Drive Management restrictions
+        self.assertIn("New-PSDrive", server.DEFAULT_RESTRICTED_COMMANDS)
+        self.assertIn("Remove-PSDrive", server.DEFAULT_RESTRICTED_COMMANDS)
+
         # Verify network requests are still ALLOWED (NOT in restricted list)
         self.assertNotIn("Invoke-WebRequest", server.DEFAULT_RESTRICTED_COMMANDS)
         self.assertNotIn("iwr", server.DEFAULT_RESTRICTED_COMMANDS)
