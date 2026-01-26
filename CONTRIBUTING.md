@@ -5,6 +5,7 @@
 - `uv sync`: Create virtual environment and install dependencies.
 - `uv run mcp-server-for-powershell`: Run the server.
 - `uv build`: Build the package.
+- `uv sync --upgrade`: Upgrade dependencies.
 
 ## Testing
 
